@@ -32,12 +32,11 @@ services:
     environment:
       - TYPE=SPIGOT
       # BUILD_FROM_SOURCE未指定だとビルド済のspigot.jarを直接DLするため非推奨
-      - BUILD_FROM_SOURCE=true
-      - VERSION=1.13.2
+      - VERSION=1.20.2
       # EULAに同意した上でtrueに書き換えてください
       - EULA=true
       # ゲーム内OP権限を使用したいMinecraftIDに書き換えてください
-      - OPS=unchama
+      - OPS=mc_ikakura
       - TZ=Asia/Tokyo
     volumes:
       # pluginsディレクトリをマウント(jarやconfig.ymlなどを手動配置したうえで起動してください)
