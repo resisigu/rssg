@@ -1,0 +1,91 @@
+# 整地鯖(春)開発用にspigot+DB+phpmyadmin環境を構築するdocker-compose定義ファイル
+
+## 下準備 ##
+# 1. docker-compose.ymlにrename
+# 2. コメントアウトの説明文に沿って編集する
+# 3. <docker-compose.ymlを配置したカレントディレクトリ>/plugins ディレクトリ配下にビルドしたgigantic.jar+各種依存プラグインを配置する
+# 4. docker-compose up  ※初回ビルドはspigotをビルドするため十数分かかります
+# 5. 起動しただけだとdbの設定が違う。変更するために一旦Ctrl+Cでコンテナを止める
+# 6. <docker-compose.ymlを配置したカレントディレクトリ>/plugins/Gigantic/database.ymlを編集
+#    - 接続先ホストを”localhost”から"db"に変更
+#    - Passwordを"password"に変更
+# 7. docker-compose up
+
+## 下準備完了後 ##
+# - minecraftを起動し、接続アドレスに<dockerホスト名orIP>を指定すると接続できます
+# - dbは"http://<dockerホスト名orIP>:8080"で閲覧/編集可能です
+# - let's develop もくもく!!
+
+
+version: '3.3'
+
+networks:
+  gigantic-develop:
+    external: false
+
+services:
+
+  # spigotサーバー本体のコンテナ
+  mc-spigot:
+    image: itzg/minecraft-server
+    ports:
+      # ホストアドレス:25565 でアクセス可能とする
+      - "25565:25565"
+    environment:
+      - TYPE=SPIGOT
+      # BUILD_FROM_SOURCE未指定だとビルド済のspigot.jarを直接DLするため非推奨
+      - BUILD_FROM_SOURCE=true
+      - VERSION=1.13.2
+      # EULAに同意した上でtrueに書き換えてください
+      - EULA=true
+      # ゲーム内OP権限を使用したいMinecraftIDに書き換えてください
+      - OPS=unchama
+      - TZ=Asia/Tokyo
+    volumes:
+      # pluginsディレクトリをマウント(jarやconfig.ymlなどを手動配置したうえで起動してください)
+      - ./plugins:/data/plugins
+      # ログディレクトリをマウント(ホストPCで手軽に見れ流ようにする)
+      - ./logs:/data/logs
+    networks:
+      - gigantic-develop
+    depends_on:
+      - db
+
+  # phpmyadminのコンテナ
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    environment:
+      - TZ=Asia/Tokyo
+      - PMA_ARBITRARY=1
+      - PMA_HOST=db
+      - PMA_USER=root
+      - PMA_PASSWORD=password
+    networks:
+      - gigantic-develop
+    ports:
+      # ホストアドレス:8080 でアクセス可能とする
+      - "8080:80"
+    depends_on:
+      - db
+
+  # dbのコンテナ
+  db:
+    image: mariadb:10.1.38-bionic
+    environment:
+      - TZ=Asia/Tokyo
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=gigantic
+    # wait_timeout=60(1m)->86400(24h) (TimeOut対策)
+    # character-set-server=latin1->utf8 (文字化け対策)
+    command: [
+      '--wait_timeout=86400',
+      '--character-set-server=utf8',
+    ]
+    networks:
+      - gigantic-develop
+    #  以下、volume設定を追加する場合はコメントアウトを外す
+    #volumes:
+      # 初期投入データを配置する場合、以下のコメントアウトを外して<docker-compose.ymlを配置したカレントディレクトリ>/initdb ディレクトリにsqlやshを配置しておく
+      #- ./initdb:/docker-entrypoint-initdb.d
+      # Mysql保存データを永続化したい場合は以下のコメントアウトを外す
+      #- ./mysql:/var/lib/mysql
