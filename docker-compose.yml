@@ -5,8 +5,6 @@
 # 4. docker-compose up  ※初回ビルドはspigotをビルドするため十数分かかります
 # 5. 起動しただけだとdbの設定が違う。変更するために一旦Ctrl+Cでコンテナを止める
 # 6. <docker-compose.ymlを配置したカレントディレクトリ>/plugins/Gigantic/database.ymlを編集
-#    - 接続先ホストを”localhost”から"db"に変更
-#    - Passwordを"password"に変更
 # 7. docker-compose up
 
 ## 下準備完了後 ##
