@@ -1,5 +1,3 @@
-# 整地鯖(春)開発用にspigot+DB+phpmyadmin環境を構築するdocker-compose定義ファイル
-
 ## 下準備 ##
 # 1. docker-compose.ymlにrename
 # 2. コメントアウトの説明文に沿って編集する
@@ -48,44 +46,3 @@ services:
       - ./logs:/data/logs
     networks:
       - gigantic-develop
-    depends_on:
-      - db
-
-  # phpmyadminのコンテナ
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    environment:
-      - TZ=Asia/Tokyo
-      - PMA_ARBITRARY=1
-      - PMA_HOST=db
-      - PMA_USER=root
-      - PMA_PASSWORD=password
-    networks:
-      - gigantic-develop
-    ports:
-      # ホストアドレス:8080 でアクセス可能とする
-      - "8080:80"
-    depends_on:
-      - db
-
-  # dbのコンテナ
-  db:
-    image: mariadb:10.1.38-bionic
-    environment:
-      - TZ=Asia/Tokyo
-      - MYSQL_ROOT_PASSWORD=password
-      - MYSQL_DATABASE=gigantic
-    # wait_timeout=60(1m)->86400(24h) (TimeOut対策)
-    # character-set-server=latin1->utf8 (文字化け対策)
-    command: [
-      '--wait_timeout=86400',
-      '--character-set-server=utf8',
-    ]
-    networks:
-      - gigantic-develop
-    #  以下、volume設定を追加する場合はコメントアウトを外す
-    #volumes:
-      # 初期投入データを配置する場合、以下のコメントアウトを外して<docker-compose.ymlを配置したカレントディレクトリ>/initdb ディレクトリにsqlやshを配置しておく
-      #- ./initdb:/docker-entrypoint-initdb.d
-      # Mysql保存データを永続化したい場合は以下のコメントアウトを外す
-      #- ./mysql:/var/lib/mysql
